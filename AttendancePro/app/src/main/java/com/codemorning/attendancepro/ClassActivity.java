@@ -6,11 +6,11 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.parse.FindCallback;
 import com.parse.ParseException;
@@ -21,17 +21,17 @@ import com.parse.ParseUser;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class ClassActivity extends AppCompatActivity {
 
-    private List<Note> posts;
-    ArrayAdapter<Note> adapter;
+    private List<Class> classes;
+    ArrayAdapter<Class> adapter;
     ListView lv;
     ProgressBar pb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_class);
 
         ParseUser currentUser = ParseUser.getCurrentUser();
         if (currentUser == null) {
@@ -39,8 +39,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         pb = (ProgressBar)findViewById(R.id.progressbar);
-        posts = new ArrayList<Note>();
-        adapter = new ArrayAdapter<Note>(this, R.layout.list_item_layout, posts);
+        classes = new ArrayList<Class>();
+        adapter = new ArrayAdapter<Class>(this, R.layout.class_item_layout, classes);
         lv = (ListView)findViewById(R.id.list);
 
         lv.setAdapter(adapter);
@@ -48,40 +48,50 @@ public class MainActivity extends AppCompatActivity {
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Note note = posts.get(position);
-                Intent intent = new Intent(MainActivity.this, EditNoteActivity.class);
-                intent.putExtra("noteId", note.getId());
-                intent.putExtra("noteTitle", note.getTitle());
-                intent.putExtra("noteContent", note.getContent());
+                Class classObj = classes.get(position);
+                Intent intent = new Intent(ClassActivity.this, StudentActivity.class);
+                intent.putExtra("classTitle", classObj.getTitle());
                 startActivity(intent);
             }
         });
 
-        refreshPostList();
+//        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                Class classObj = classes.get(position);
+//                Intent intent = new Intent(ClassActivity.this, EditClassActivity.class);
+//                intent.putExtra("classId", classObj.getId());
+//                intent.putExtra("classTitle", classObj.getTitle());
+//                startActivity(intent);
+//            }
+//        });
+
+        refreshClassList();
 
     }
 
 
-    private void refreshPostList() {
+    private void refreshClassList() {
         pb.setVisibility(View.VISIBLE);
-        ParseQuery<ParseObject> query = ParseQuery.getQuery("Post");
-        query.whereEqualTo("author", ParseUser.getCurrentUser());
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("Class");
+        query.whereEqualTo("teacher", ParseUser.getCurrentUser());
 
         query.findInBackground(new FindCallback<ParseObject>() {
 
             @Override
-            public void done(List<ParseObject> postList, ParseException e) {
+            public void done(List<ParseObject> classList, ParseException e) {
                 pb.setVisibility(View.GONE);
                 if (e == null) {
-                    // If there are results, update the list of posts
+                    // If there are results, update the list of classes
                     // and notify the adapter
-                    posts.clear();
-                    for (ParseObject post : postList) {
-                        Note note = new Note(post.getObjectId(), post.getString("title"), post.getString("content"));
-                        posts.add(note);
+                    classes.clear();
+                    for (ParseObject classObj2 : classList) {
+                        Class classObj = new Class(classObj2.getObjectId(), classObj2.getString("classTitle"));
+                        classes.add(classObj);
                     }
                     adapter.notifyDataSetChanged();
                 } else {
+
                 }
             }
         });
@@ -92,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
 
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        getMenuInflater().inflate(R.menu.class_menu, menu);
         return true;
     }
 
@@ -107,12 +117,12 @@ public class MainActivity extends AppCompatActivity {
         switch (id) {
 
             case R.id.action_refresh: {
-                refreshPostList();
+                refreshClassList();
                 break;
             }
 
-            case R.id.action_new: {
-                Intent intent = new Intent(this, EditNoteActivity.class);
+            case R.id.action_new_class: {
+                Intent intent = new Intent(this, EditClassActivity.class);
                 startActivity(intent);
                 break;
             }
